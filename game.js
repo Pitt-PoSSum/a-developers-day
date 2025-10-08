@@ -11,14 +11,27 @@ const gameState = {
 
 let draggedTask = null;
 const LOCK_DURATION = 10000; // 10 seconds
-const GAME_DURATION = 120000; // 120 seconds = 2 minutes
+const GAME_DURATION = 240000; // 240 seconds = 4 minutes
 const WORK_DAY_HOURS = 8; // 8 hour workday (9:00 - 17:00)
+const SPEED_INCREASE_AFTER_1 = 60000; // After 1 minute
+const SPEED_INCREASE_AFTER_2 = 120000; // After 2 minutes
+const SPEED_MULTIPLIER_1 = 1.2; // 20% faster
+const SPEED_MULTIPLIER_2 = 1.44; // 44% faster (1.2 * 1.2)
 
 let gameStartTime = null;
 let gameRunning = false;
 let gameAnimationFrame = null;
 let messageInterval = null;
 let unreadMessages = 0;
+
+// Helper function to get current speed multiplier
+function getSpeedMultiplier() {
+    if (!gameStartTime) return 1;
+    const elapsed = Date.now() - gameStartTime;
+    if (elapsed >= SPEED_INCREASE_AFTER_2) return SPEED_MULTIPLIER_2;
+    if (elapsed >= SPEED_INCREASE_AFTER_1) return SPEED_MULTIPLIER_1;
+    return 1;
+}
 
 // Update bubble state
 let bubbleStartTime = null;
@@ -38,8 +51,8 @@ const PRIVATE_BUBBLE_GROWTH_DURATION = 60000; // 60 seconds
 let accountingBubbleStartTime = null;
 let accountingBubbleAnimationFrame = null;
 let accountingBubbleGrowing = false;
-const ACCOUNTING_BUBBLE_DELAY = 20000; // 20 seconds delay
-const ACCOUNTING_BUBBLE_GROWTH_DURATION = 75000; // 75 seconds (slower than private)
+const ACCOUNTING_BUBBLE_DELAY = 1000; // 1 seconds delay
+const ACCOUNTING_BUBBLE_GROWTH_DURATION = 60000; // 60 seconds (slower than private)
 
 // Initialize the game
 function initGame() {
@@ -85,13 +98,7 @@ function updateGameTime() {
 
     // Check for game end
     if (elapsed >= GAME_DURATION) {
-        endGame(false); // Lost - time ran out
-        return;
-    }
-
-    // Check for win condition
-    if (checkWinCondition()) {
-        endGame(true); // Won - all tasks done
+        endGame(); // Time is up - evaluate win/loss
         return;
     }
 
@@ -99,27 +106,133 @@ function updateGameTime() {
     gameAnimationFrame = requestAnimationFrame(updateGameTime);
 }
 
-// Check if all tasks are in done column on both boards
+// Check if all chat tasks are completed and correctly positioned
 function checkWinCondition() {
-    return gameState.tasks.every(task =>
-        task.board1Column === 'done' && task.board2Column === 'done'
-    );
+    // Game can only be won when time runs out, not before
+    return false;
+}
+
+// Get all chat messages with task data (colleague messages)
+function getAllChatTasks() {
+    const messagesContainer = document.getElementById('messenger-messages');
+    const colleagueMessages = messagesContainer.querySelectorAll('.message.colleague');
+    return Array.from(colleagueMessages).filter(msg => msg.dataset.taskId);
+}
+
+// Check if a message task is completed correctly
+function isMessageTaskValid(messageDiv) {
+    const taskId = parseInt(messageDiv.dataset.taskId);
+    const boardId = messageDiv.dataset.boardId;
+    const targetColumn = messageDiv.dataset.targetColumn;
+
+    const task = gameState.tasks.find(t => t.id === taskId);
+    if (!task) return { valid: false, reason: 'Task nicht gefunden' };
+
+    const columnKey = `board${boardId}Column`;
+    const currentColumn = task[columnKey];
+
+    // Check correct column
+    if (currentColumn !== targetColumn) {
+        return {
+            valid: false,
+            reason: `"${task.title}" auf Board ${boardId} ist in ${getColumnNameDE(currentColumn)}, sollte aber in ${getColumnNameDE(targetColumn)} sein`
+        };
+    }
+
+    // Check minimum time booked
+    if (task.accountedTime < 15) {
+        return {
+            valid: false,
+            reason: `"${task.title}" hat nur ${formatTime(task.accountedTime)} gebucht, mindestens 15min erforderlich`
+        };
+    }
+
+    return { valid: true };
 }
 
 // End the game
-function endGame(won) {
+function endGame() {
     gameRunning = false;
     if (gameAnimationFrame) {
         cancelAnimationFrame(gameAnimationFrame);
     }
 
-    // Show game over message
+    // Stop all bubble animations and hide them
+    pauseBubbleGrowth();
+    pausePrivateBubbleGrowth();
+    pauseAccountingBubbleGrowth();
+
+    const updateBubble = document.getElementById('update-bubble');
+    const privateBubble = document.getElementById('private-bubble');
+    const accountingBubble = document.getElementById('accounting-bubble');
+
+    if (updateBubble) updateBubble.style.display = 'none';
+    if (privateBubble) privateBubble.style.display = 'none';
+    if (accountingBubble) accountingBubble.style.display = 'none';
+
+    // Clear message interval
+    if (messageInterval) {
+        clearInterval(messageInterval);
+        messageInterval = null;
+    }
+
+    // Evaluate game result
     setTimeout(() => {
-        if (won) {
-            alert('🎉 Gewonnen! Du hast alle Tasks rechtzeitig erledigt!');
-        } else {
-            alert('⏰ Verloren! Die Zeit ist abgelaufen. Nicht alle Tasks wurden fertiggestellt.');
+        const chatTasks = getAllChatTasks();
+        const totalChatTasks = chatTasks.length;
+        let completedTasks = 0;
+        const errors = [];
+
+        // Check each chat task
+        chatTasks.forEach(messageDiv => {
+            const isCompleted = messageDiv.classList.contains('completed');
+            if (isCompleted) {
+                completedTasks++;
+            } else {
+                const validation = isMessageTaskValid(messageDiv);
+                if (!validation.valid) {
+                    errors.push(validation.reason);
+                }
+            }
+        });
+
+        // Check total booked time (should not exceed 8 hours = 480 minutes)
+        const totalBookedTime = gameState.tasks.reduce((sum, task) => sum + task.accountedTime, 0);
+        const maxWorkTime = WORK_DAY_HOURS * 60; // 480 minutes
+
+        if (totalBookedTime > maxWorkTime) {
+            errors.push(`Zu viel Zeit gebucht: ${formatTime(totalBookedTime)} von max. ${formatTime(maxWorkTime)}`);
         }
+
+        // Determine win/loss
+        const won = completedTasks === totalChatTasks && errors.length === 0;
+        const score = `${completedTasks} von ${totalChatTasks}`;
+
+        // Build result message
+        let message = '';
+        if (won) {
+            message = `🎉 GEWONNEN!\n\n`;
+            message += `✅ Score: ${score} Tasks erledigt\n`;
+            message += `⏰ Gebuchte Zeit: ${formatTime(totalBookedTime)} von ${formatTime(maxWorkTime)}\n\n`;
+            message += `Perfekt! Du hast alle Aufgaben rechtzeitig und korrekt erledigt!`;
+        } else {
+            message = `❌ VERLOREN!\n\n`;
+            message += `📊 Score: ${score} Tasks erledigt\n`;
+            message += `⏰ Gebuchte Zeit: ${formatTime(totalBookedTime)} von ${formatTime(maxWorkTime)}\n\n`;
+
+            if (completedTasks < totalChatTasks) {
+                message += `⚠️ ${totalChatTasks - completedTasks} Task(s) nicht als erledigt markiert\n\n`;
+            }
+
+            if (errors.length > 0) {
+                message += `Probleme:\n`;
+                errors.forEach(error => {
+                    message += `• ${error}\n`;
+                });
+            }
+        }
+
+        alert(message);
     }, 100);
 }
 
@@ -349,12 +462,39 @@ function setupMessenger() {
         }
     }, 1000);
 
-    // Start sending messages every 20 seconds
+    // Start sending messages every 20 seconds initially
+    const baseInterval = 20000; // 20 seconds
     messageInterval = setInterval(() => {
         if (gameRunning) {
             sendRandomTaskMessage();
         }
-    }, 20000);
+    }, baseInterval);
+
+    // After 1 minute, change interval to 20% faster
+    setTimeout(() => {
+        if (messageInterval) {
+            clearInterval(messageInterval);
+        }
+        const fasterInterval = baseInterval / SPEED_MULTIPLIER_1; // 20% faster
+        messageInterval = setInterval(() => {
+            if (gameRunning) {
+                sendRandomTaskMessage();
+            }
+        }, fasterInterval);
+    }, SPEED_INCREASE_AFTER_1);
+
+    // After 2 minutes, change interval to 44% faster (1.2 * 1.2)
+    setTimeout(() => {
+        if (messageInterval) {
+            clearInterval(messageInterval);
+        }
+        const fastestInterval = baseInterval / SPEED_MULTIPLIER_2; // 44% faster
+        messageInterval = setInterval(() => {
+            if (gameRunning) {
+                sendRandomTaskMessage();
+            }
+        }, fastestInterval);
+    }, SPEED_INCREASE_AFTER_2);
 }
 
 // Get column name in German
@@ -380,6 +520,14 @@ function getNextColumn(currentColumn) {
 
 // Send random task message
 function sendRandomTaskMessage() {
+    // Check if we're in the last 20 seconds of the game
+    const elapsed = Date.now() - gameStartTime;
+    const timeRemaining = GAME_DURATION - elapsed;
+    if (timeRemaining < 20000) {
+        // Stop sending messages in the last 20 seconds
+        return;
+    }
+
     // Find tasks that are not in done column on either board
     const movableTasks = gameState.tasks.filter(task => {
         const board1NotDone = task.board1Column !== 'done';
@@ -560,7 +708,9 @@ function animateBubbleGrowth() {
     if (!bubbleGrowing) return;
 
     const elapsed = Date.now() - bubbleStartTime;
-    const progress = Math.min(elapsed / BUBBLE_GROWTH_DURATION, 1);
+    const speedMultiplier = getSpeedMultiplier();
+    const adjustedDuration = BUBBLE_GROWTH_DURATION / speedMultiplier;
+    const progress = Math.min(elapsed / adjustedDuration, 1);
 
     // Calculate size based on progress (50px to full screen)
     const minSize = 50;
@@ -679,7 +829,9 @@ function animatePrivateBubbleGrowth() {
     if (!privateBubbleGrowing) return;
 
     const elapsed = Date.now() - privateBubbleStartTime;
-    const progress = Math.min(elapsed / PRIVATE_BUBBLE_GROWTH_DURATION, 1);
+    const speedMultiplier = getSpeedMultiplier();
+    const adjustedDuration = PRIVATE_BUBBLE_GROWTH_DURATION / speedMultiplier;
+    const progress = Math.min(elapsed / adjustedDuration, 1);
 
     // Calculate size based on progress (50px to full screen)
     const minSize = 50;
@@ -761,7 +913,9 @@ function animateAccountingBubbleGrowth() {
     if (!accountingBubbleGrowing) return;
 
     const elapsed = Date.now() - accountingBubbleStartTime;
-    const progress = Math.min(elapsed / ACCOUNTING_BUBBLE_GROWTH_DURATION, 1);
+    const speedMultiplier = getSpeedMultiplier();
+    const adjustedDuration = ACCOUNTING_BUBBLE_GROWTH_DURATION / speedMultiplier;
+    const progress = Math.min(elapsed / adjustedDuration, 1);
 
     // Calculate size based on progress (80px to full screen)
     const minSize = 80;
