@@ -20,7 +20,7 @@
                 <div class="timeline">
                     <div class="timeline-progress" id="timeline-progress"></div>
                     <div class="timeline-markers">
-                        <div class="timeline-marker" style="left: 0%"><span>09:00</span></div>
+                        <div class="timeline-marker" style="left: 0"><span>09:00</span></div>
                         <div class="timeline-marker" style="left: 12.5%"><span>10:00</span></div>
                         <div class="timeline-marker" style="left: 25%"><span>11:00</span></div>
                         <div class="timeline-marker" style="left: 37.5%"><span>12:00</span></div>
@@ -211,6 +211,51 @@
             <div class="accounting-tasks" id="accounting-tasks">
                 <!-- Tasks will be dynamically inserted here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Interruption Popup -->
+    <div class="interruption-overlay hidden" id="interruption-overlay">
+        <div class="interruption-modal">
+            <div class="interruption-icon" id="interruption-icon">📞</div>
+            <h2 id="interruption-title">Kunde ruft an</h2>
+            <p id="interruption-message">Ein wichtiger Kunde möchte mit dir sprechen über "Bug im Produktionssystem"</p>
+            <div class="interruption-buttons">
+                <button class="interruption-btn accept" id="interruption-accept">Annehmen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interruption Busy Overlay -->
+    <div class="interruption-busy-overlay hidden" id="interruption-busy-overlay">
+        <div class="interruption-busy-content">
+            <div class="interruption-busy-icon" id="interruption-busy-icon">📞</div>
+            <h3 id="interruption-busy-title">Im Gespräch mit Kunde...</h3>
+            <div class="interruption-busy-counter" id="interruption-busy-counter">20</div>
+            <button class="interruption-busy-btn" id="interruption-busy-btn">Weiter reden...</button>
+            <p class="interruption-busy-subtitle">Klicke den Button um fortzufahren</p>
+        </div>
+    </div>
+
+    <!-- Start Modal -->
+    <div class="start-modal" id="start-modal">
+        <div class="start-modal-content">
+            <h1>🧑‍💻 A Developer's Day</h1>
+            <h2>Willkommen zum Kanban Chaos!</h2>
+
+            <div class="start-instructions">
+                <h3>📋 Spielanleitung:</h3>
+                <ul>
+                    <li>🎯 <strong>Ziel:</strong> Erledige alle Tasks, die du über den Chat erhältst, bevor der Arbeitstag um 17:00 Uhr endet</li>
+                    <li>📊 <strong>Boards:</strong> Verschiebe Tasks zwischen den Spalten (nur zur nächsten Nachbarspalte!)</li>
+                    <li>💬 <strong>Team Chat:</strong> Kollegen schicken dir Aufgaben - markiere sie als erledigt wenn fertig</li>
+                    <li>⏰ <strong>Accounting:</strong> Buche pro Task den du in eine Nachbarspalte verschiebst 15 Min</li>
+                    <li>🚀 <strong>Deployment:</strong> Klicke auf wachsende Bubbles um Deployments und andere Aufgaben zu starten</li>
+                    <li>📞 <strong>Unterbrechungen:</strong> Meetings, Anrufe und Anfragen müssen angenommen werden</li>
+                </ul>
+            </div>
+
+            <button class="start-btn" id="start-btn">Spiel starten 🎮</button>
         </div>
     </div>
 

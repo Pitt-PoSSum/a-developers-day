@@ -38,7 +38,7 @@ let bubbleStartTime = null;
 let bubbleAnimationFrame = null;
 let bubbleGrowing = false;
 const BUBBLE_GROWTH_DURATION = 90000; // 90 seconds (slower growth)
-const UPDATE_DURATION = 10000; // 10 seconds
+const UPDATE_DURATION = 7000; // 7 seconds
 
 // Private life bubble state
 let privateBubbleStartTime = null;
@@ -54,7 +54,7 @@ let accountingBubbleGrowing = false;
 const ACCOUNTING_BUBBLE_DELAY = 1000; // 1 seconds delay
 const ACCOUNTING_BUBBLE_GROWTH_DURATION = 60000; // 60 seconds (slower than private)
 
-// Initialize the game
+// Initialize the game (without starting)
 function initGame() {
     renderAllBoards();
     setupDragAndDrop();
@@ -62,7 +62,7 @@ function initGame() {
     setupUpdateBubble();
     setupPrivateBubble();
     setupAccountingBubble();
-    startGame();
+    // Don't start the game yet - wait for start button
 }
 
 // Start the game timer
@@ -70,6 +70,17 @@ function startGame() {
     gameStartTime = Date.now();
     gameRunning = true;
     updateGameTime();
+
+    // Start all bubbles growing
+    startBubbleGrowth();
+    setTimeout(() => startPrivateBubbleGrowth(), PRIVATE_BUBBLE_DELAY);
+    setTimeout(() => startAccountingBubbleGrowth(), ACCOUNTING_BUBBLE_DELAY);
+
+    // Send first two messages immediately
+    sendRandomTaskMessage();
+    setTimeout(() => {
+        sendRandomTaskMessage();
+    }, 100);
 }
 
 // Update game time and timeline
@@ -175,6 +186,16 @@ function endGame() {
         clearInterval(messageInterval);
         messageInterval = null;
     }
+
+    // Clear interruption interval
+    if (interruptionInterval) {
+        clearInterval(interruptionInterval);
+        interruptionInterval = null;
+    }
+
+    // Hide any active interruption
+    hideInterruption();
+    document.getElementById('interruption-busy-overlay').classList.add('hidden');
 
     // Evaluate game result
     setTimeout(() => {
@@ -455,15 +476,8 @@ function setupMessenger() {
         messengerDialog.classList.add('hidden');
     });
 
-    // Send first message immediately
-    setTimeout(() => {
-        if (gameRunning) {
-            sendRandomTaskMessage();
-        }
-    }, 1000);
-
-    // Start sending messages every 20 seconds initially
-    const baseInterval = 20000; // 20 seconds
+    // Start sending messages every 18 seconds initially
+    const baseInterval = 18000; // 18 seconds
     messageInterval = setInterval(() => {
         if (gameRunning) {
             sendRandomTaskMessage();
@@ -682,8 +696,7 @@ function setupUpdateBubble() {
         startUpdateInstallation();
     });
 
-    // Start bubble growth
-    startBubbleGrowth();
+    // Don't start bubble growth yet - wait for game to start
 }
 
 // Start bubble growth
@@ -801,10 +814,7 @@ function setupPrivateBubble() {
         resetPrivateBubble();
     });
 
-    // Start bubble growth after delay
-    setTimeout(() => {
-        startPrivateBubbleGrowth();
-    }, PRIVATE_BUBBLE_DELAY);
+    // Don't start bubble growth yet - wait for game to start
 }
 
 // Start private bubble growth
@@ -885,10 +895,7 @@ function setupAccountingBubble() {
         resetAccountingBubble();
     });
 
-    // Start bubble growth after delay
-    setTimeout(() => {
-        startAccountingBubbleGrowth();
-    }, ACCOUNTING_BUBBLE_DELAY);
+    // Don't start bubble growth yet - wait for game to start
 }
 
 // Start accounting bubble growth
@@ -1019,5 +1026,231 @@ function formatTime(minutes) {
     return `${mins}min`;
 }
 
-// Start the game
+// Interruption system
+let interruptionInterval = null;
+let currentInterruption = null;
+const INTERRUPTION_INTERVAL = 45000; // 45 seconds
+
+const INTERRUPTION_TYPES = [
+    {
+        icon: '📞',
+        title: 'Kunde ruft an',
+        messages: [
+            'Ein wichtiger Kunde möchte mit dir sprechen über "Bug im Produktionssystem"',
+            'Großkunde XY Corp ruft an: "Dringende Frage zur neuen Feature-Integration"',
+            'VIP-Kunde meldet sich: "Kritisches Problem mit dem Login-System"',
+            'Kunde am Telefon: "Warum funktioniert der Export nicht mehr?"'
+        ]
+    },
+    {
+        icon: '📅',
+        title: 'Spontanes Meeting',
+        messages: [
+            'Team Lead: "Können wir kurz über den Sprint sprechen?"',
+            'Product Owner: "Quick Sync über die neuen Requirements?"',
+            'Scrum Master: "Retrospektive - jetzt gleich möglich?"',
+            'Chef: "Kurzes Status-Update gewünscht - hast du 10 Minuten?"'
+        ]
+    },
+    {
+        icon: '👨‍💼',
+        title: 'Kollege braucht Hilfe',
+        messages: [
+            'Sarah: "Kannst du mir bei einem Merge-Conflict helfen?"',
+            'Mike: "Ich verstehe diesen Code nicht - hast du 5 Minuten?"',
+            'Anna: "Code Review dringend benötigt für Production-Fix"',
+            'Tom: "Pair Programming Session? Ich stecke fest..."'
+        ]
+    },
+    {
+        icon: '🚨',
+        title: 'Dringende Anfrage',
+        messages: [
+            'Support Team: "Kunde wartet - kannst du das Problem analysieren?"',
+            'Sales: "Demo in 10 Minuten - brauchen Quick-Fix!"',
+            'Marketing: "Landing Page funktioniert nicht - ASAP!"',
+            'Management: "Meeting der Führungsetage läuft - Performance-Daten?!?"'
+        ]
+    }
+];
+
+function setupInterruptionSystem() {
+    // Start interruptions after initial delay
+    setTimeout(() => {
+        startInterruptionInterval();
+    }, INTERRUPTION_INTERVAL);
+}
+
+function startInterruptionInterval() {
+    interruptionInterval = setInterval(() => {
+        if (gameRunning) {
+            showRandomInterruption();
+        }
+    }, INTERRUPTION_INTERVAL);
+}
+
+function showRandomInterruption() {
+    // Pick random interruption type
+    const type = INTERRUPTION_TYPES[Math.floor(Math.random() * INTERRUPTION_TYPES.length)];
+    const message = type.messages[Math.floor(Math.random() * type.messages.length)];
+
+    currentInterruption = { type, message };
+
+    // Update popup content
+    document.getElementById('interruption-icon').textContent = type.icon;
+    document.getElementById('interruption-title').textContent = type.title;
+    document.getElementById('interruption-message').textContent = message;
+
+    // Show popup
+    document.getElementById('interruption-overlay').classList.remove('hidden');
+}
+
+function hideInterruption() {
+    document.getElementById('interruption-overlay').classList.add('hidden');
+    currentInterruption = null;
+}
+
+function acceptInterruption() {
+    if (!currentInterruption) return;
+
+    // Save interruption data before hiding
+    const interruptionData = {
+        icon: currentInterruption.type.icon,
+        title: currentInterruption.type.title
+    };
+
+    hideInterruption();
+
+    // Show busy overlay with locked screen
+    const busyOverlay = document.getElementById('interruption-busy-overlay');
+    const busyIcon = document.getElementById('interruption-busy-icon');
+    const busyTitle = document.getElementById('interruption-busy-title');
+    const busyCounter = document.getElementById('interruption-busy-counter');
+    const busyBtn = document.getElementById('interruption-busy-btn');
+
+    if (!busyOverlay) {
+        console.error('Busy overlay not found!');
+        return;
+    }
+
+    // Set content based on interruption type
+    busyIcon.textContent = interruptionData.icon;
+
+    const busyTitles = {
+        '📞': 'Im Gespräch mit Kunde...',
+        '📅': 'Im Meeting...',
+        '👨‍💼': 'Helfe Kollegen...',
+        '🚨': 'Bearbeite dringende Anfrage...'
+    };
+
+    busyTitle.textContent = busyTitles[interruptionData.icon] || 'Beschäftigt...';
+
+    // Reset counter to 20
+    let clicksRemaining = 20;
+    busyCounter.textContent = clicksRemaining;
+
+    // Show overlay
+    busyOverlay.classList.remove('hidden');
+
+    // Lock game interactions
+    lockGameInteractions();
+
+    // Button click handler
+    const handleClick = () => {
+        clicksRemaining--;
+        busyCounter.textContent = clicksRemaining;
+
+        // Trigger animation by removing and re-adding the animation
+        busyCounter.style.animation = 'none';
+        setTimeout(() => {
+            busyCounter.style.animation = 'counterPulse 0.3s ease';
+        }, 10);
+
+        if (clicksRemaining <= 0) {
+            // Remove event listener
+            busyBtn.removeEventListener('click', handleClick);
+
+            // Hide overlay and unlock
+            busyOverlay.classList.add('hidden');
+            unlockGameInteractions();
+            currentInterruption = null;
+        }
+    };
+
+    // Add event listener
+    busyBtn.addEventListener('click', handleClick);
+}
+
+function lockGameInteractions() {
+    // Disable drag and drop on boards
+    document.querySelectorAll('.kanban-board').forEach(board => {
+        board.style.pointerEvents = 'none';
+        board.style.opacity = '0.5';
+        board.style.filter = 'blur(2px)';
+    });
+
+    // Disable messenger
+    const messengerIcon = document.getElementById('messenger-icon');
+    if (messengerIcon) {
+        messengerIcon.style.pointerEvents = 'none';
+        messengerIcon.style.opacity = '0.5';
+    }
+
+    // Hide all bubbles temporarily
+    const updateBubble = document.getElementById('update-bubble');
+    const privateBubble = document.getElementById('private-bubble');
+    const accountingBubble = document.getElementById('accounting-bubble');
+
+    if (updateBubble) updateBubble.style.display = 'none';
+    if (privateBubble) privateBubble.style.display = 'none';
+    if (accountingBubble) accountingBubble.style.display = 'none';
+}
+
+function unlockGameInteractions() {
+    // Re-enable drag and drop on boards
+    document.querySelectorAll('.kanban-board').forEach(board => {
+        board.style.pointerEvents = '';
+        board.style.opacity = '';
+        board.style.filter = '';
+    });
+
+    // Re-enable messenger
+    const messengerIcon = document.getElementById('messenger-icon');
+    if (messengerIcon) {
+        messengerIcon.style.pointerEvents = '';
+        messengerIcon.style.opacity = '';
+    }
+
+    // Restore bubbles visibility (they should continue growing if they were active)
+    const updateBubble = document.getElementById('update-bubble');
+    const privateBubble = document.getElementById('private-bubble');
+    const accountingBubble = document.getElementById('accounting-bubble');
+
+    if (updateBubble && bubbleGrowing) {
+        updateBubble.style.display = 'flex';
+    }
+    if (privateBubble && privateBubbleGrowing) {
+        privateBubble.style.display = 'flex';
+    }
+    if (accountingBubble && accountingBubbleGrowing) {
+        accountingBubble.style.display = 'flex';
+    }
+}
+
+// Setup event listeners
+document.getElementById('interruption-accept').addEventListener('click', acceptInterruption);
+
+// Start button handler
+document.getElementById('start-btn').addEventListener('click', () => {
+    // Hide start modal
+    document.getElementById('start-modal').classList.add('hidden');
+
+    // Start the game
+    startGame();
+});
+
+// Initialize interruption system
+setupInterruptionSystem();
+
+// Initialize the game (but don't start yet)
 initGame();
