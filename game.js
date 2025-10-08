@@ -24,6 +24,9 @@ let gameAnimationFrame = null;
 let messageInterval = null;
 let unreadMessages = 0;
 
+// Background music
+let backgroundMusic = null;
+
 // Helper function to get current speed multiplier
 function getSpeedMultiplier() {
     if (!gameStartTime) return 1;
@@ -71,6 +74,9 @@ function startGame() {
     gameRunning = true;
     updateGameTime();
 
+    // Start background music
+    startBackgroundMusic();
+
     // Start all bubbles growing
     startBubbleGrowth();
     setTimeout(() => startPrivateBubbleGrowth(), PRIVATE_BUBBLE_DELAY);
@@ -81,6 +87,26 @@ function startGame() {
     setTimeout(() => {
         sendRandomTaskMessage();
     }, 100);
+}
+
+// Start background music
+function startBackgroundMusic() {
+    if (!backgroundMusic) {
+        backgroundMusic = new Audio('percussive-stomps.mp3');
+        backgroundMusic.loop = true;
+        backgroundMusic.volume = 0.2; // 30% volume
+    }
+    backgroundMusic.play().catch(error => {
+        console.log('Could not play background music:', error);
+    });
+}
+
+// Stop background music
+function stopBackgroundMusic() {
+    if (backgroundMusic) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+    }
 }
 
 // Update game time and timeline
@@ -167,6 +193,9 @@ function endGame() {
     if (gameAnimationFrame) {
         cancelAnimationFrame(gameAnimationFrame);
     }
+
+    // Stop background music
+    stopBackgroundMusic();
 
     // Stop all bubble animations and hide them
     pauseBubbleGrowth();
@@ -617,6 +646,13 @@ function addMessage(text, taskData = null) {
         messageDiv.dataset.taskId = taskData.taskId;
         messageDiv.dataset.boardId = taskData.boardId;
         messageDiv.dataset.targetColumn = taskData.targetColumn;
+
+        // Play chat notification sound
+        const chatSound = new Audio('pop-chat.mp3');
+        chatSound.volume = 0.5;
+        chatSound.play().catch(error => {
+            console.log('Could not play chat notification sound:', error);
+        });
     }
 
     messagesContainer.appendChild(messageDiv);
@@ -803,6 +839,13 @@ function setupPrivateBubble() {
     // Click on bubble
     bubble.addEventListener('click', () => {
         if (privateBubbleGrowing) {
+            // Play cartoon phone sound
+            const phoneSound = new Audio('cartoon-phone.mp3');
+            phoneSound.volume = 0.9;
+            phoneSound.play().catch(error => {
+                console.log('Could not play cartoon phone sound:', error);
+            });
+
             pausePrivateBubbleGrowth();
             privateModal.classList.remove('hidden');
         }
@@ -1001,6 +1044,13 @@ function renderAccountingModal() {
 function adjustTaskTime(taskId, minutes) {
     const task = gameState.tasks.find(t => t.id === taskId);
     if (task) {
+        // Play money sound
+        const moneySound = new Audio('money.mp3');
+        moneySound.volume = 0.5;
+        moneySound.play().catch(error => {
+            console.log('Could not play money sound:', error);
+        });
+
         task.accountedTime += minutes;
         // Prevent negative time
         if (task.accountedTime < 0) {
@@ -1101,6 +1151,13 @@ function showRandomInterruption() {
     document.getElementById('interruption-title').textContent = type.title;
     document.getElementById('interruption-message').textContent = message;
 
+    // Play door knock sound
+    const knockSound = new Audio('door-knock.mp3');
+    knockSound.volume = 0.6;
+    knockSound.play().catch(error => {
+        console.log('Could not play door knock sound:', error);
+    });
+
     // Show popup
     document.getElementById('interruption-overlay').classList.remove('hidden');
 }
@@ -1157,6 +1214,13 @@ function acceptInterruption() {
 
     // Button click handler
     const handleClick = () => {
+        // Play hammer hitting sound
+        const hammerSound = new Audio('hammer-hitting.mp3');
+        hammerSound.volume = 0.9;
+        hammerSound.play().catch(error => {
+            console.log('Could not play hammer hitting sound:', error);
+        });
+
         clicksRemaining--;
         busyCounter.textContent = clicksRemaining;
 
