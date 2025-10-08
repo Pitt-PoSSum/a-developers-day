@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Developer's Day - Kanban Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>🧑‍💻 A Developer's Day - Kanban Chaos</h1>
+
+            <!-- Timeline -->
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    <span class="timeline-label">🕐 Arbeitstag (8 Stunden)</span>
+                    <span class="timeline-time" id="current-time">09:00</span>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-progress" id="timeline-progress"></div>
+                    <div class="timeline-markers">
+                        <div class="timeline-marker" style="left: 0%"><span>09:00</span></div>
+                        <div class="timeline-marker" style="left: 12.5%"><span>10:00</span></div>
+                        <div class="timeline-marker" style="left: 25%"><span>11:00</span></div>
+                        <div class="timeline-marker" style="left: 37.5%"><span>12:00</span></div>
+                        <div class="timeline-marker" style="left: 50%"><span>13:00</span></div>
+                        <div class="timeline-marker" style="left: 62.5%"><span>14:00</span></div>
+                        <div class="timeline-marker" style="left: 75%"><span>15:00</span></div>
+                        <div class="timeline-marker" style="left: 87.5%"><span>16:00</span></div>
+                        <div class="timeline-marker" style="left: 100%"><span>17:00</span></div>
+                    </div>
+                    <!-- 15-minute markers -->
+                    <div class="timeline-quarter-markers">
+                        <div class="quarter-marker" style="left: 3.125%"></div>
+                        <div class="quarter-marker" style="left: 6.25%"></div>
+                        <div class="quarter-marker" style="left: 9.375%"></div>
+                        <div class="quarter-marker" style="left: 15.625%"></div>
+                        <div class="quarter-marker" style="left: 18.75%"></div>
+                        <div class="quarter-marker" style="left: 21.875%"></div>
+                        <div class="quarter-marker" style="left: 28.125%"></div>
+                        <div class="quarter-marker" style="left: 31.25%"></div>
+                        <div class="quarter-marker" style="left: 34.375%"></div>
+                        <div class="quarter-marker" style="left: 40.625%"></div>
+                        <div class="quarter-marker" style="left: 43.75%"></div>
+                        <div class="quarter-marker" style="left: 46.875%"></div>
+                        <div class="quarter-marker" style="left: 53.125%"></div>
+                        <div class="quarter-marker" style="left: 56.25%"></div>
+                        <div class="quarter-marker" style="left: 59.375%"></div>
+                        <div class="quarter-marker" style="left: 65.625%"></div>
+                        <div class="quarter-marker" style="left: 68.75%"></div>
+                        <div class="quarter-marker" style="left: 71.875%"></div>
+                        <div class="quarter-marker" style="left: 78.125%"></div>
+                        <div class="quarter-marker" style="left: 81.25%"></div>
+                        <div class="quarter-marker" style="left: 84.375%"></div>
+                        <div class="quarter-marker" style="left: 90.625%"></div>
+                        <div class="quarter-marker" style="left: 93.75%"></div>
+                        <div class="quarter-marker" style="left: 96.875%"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Board 1: Horizontal Layout -->
+            <section class="board-section">
+                <h2>📊 Internal - Board 1</h2>
+                <div class="kanban-board horizontal" data-board="1">
+                    <div class="kanban-column" data-column="todo">
+                        <h3>To Do</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="doing">
+                        <h3>Doing</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="qa">
+                        <h3>QA</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="customer-qa">
+                        <h3>Customer QA</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="done">
+                        <h3>Done</h3>
+                        <div class="task-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Board 2: Vertical Layout -->
+            <section class="board-section">
+                <h2>📋 Customer - Board 2</h2>
+                <div class="kanban-board vertical" data-board="2">
+                    <div class="kanban-column" data-column="todo">
+                        <h3>To Do</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="doing">
+                        <h3>Doing</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="qa">
+                        <h3>QA</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="customer-qa">
+                        <h3>Customer QA</h3>
+                        <div class="task-list"></div>
+                    </div>
+                    <div class="kanban-column" data-column="done">
+                        <h3>Done</h3>
+                        <div class="task-list"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Messenger -->
+    <div class="messenger-icon" id="messenger-icon">
+        💬
+        <span class="messenger-badge" id="messenger-badge">0</span>
+    </div>
+
+    <!-- Messenger Dialog -->
+    <div class="messenger-dialog hidden" id="messenger-dialog">
+        <div class="messenger-header">
+            <h3>📱 Team Chat</h3>
+            <button class="messenger-close" id="messenger-close">✕</button>
+        </div>
+        <div class="messenger-messages" id="messenger-messages">
+            <div class="message system">
+                <div class="message-content">Willkommen! Du bekommst gleich Aufgaben von deinen Kollegen...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Bubble -->
+    <div class="update-bubble" id="update-bubble">
+        <div class="bubble-content">
+            <span class="bubble-icon">🚀</span>
+            <span class="bubble-text">Deploy</span>
+        </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="update-modal hidden" id="update-modal">
+        <div class="update-modal-content">
+            <div class="update-icon">🚀</div>
+            <h2>Deployment bereit</h2>
+            <p>Deine Änderungen müssen auf die Server ausgerollt werden.</p>
+            <p class="update-detail">Dauer: ca. 10 Sekunden</p>
+            <div class="update-buttons">
+                <button class="update-btn update-accept" id="update-accept">Jetzt deployen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Overlay -->
+    <div class="update-overlay hidden" id="update-overlay">
+        <div class="update-progress-container">
+            <div class="update-spinner">⏳</div>
+            <h3>Deployment läuft...</h3>
+            <div class="update-progress-bar">
+                <div class="update-progress-fill" id="update-progress-fill"></div>
+            </div>
+            <p class="update-status">Bitte warten Sie...</p>
+        </div>
+    </div>
+
+    <!-- Private Life Bubble -->
+    <div class="private-bubble" id="private-bubble">
+        <div class="bubble-content">
+            <span class="bubble-icon">👨‍👩‍👧‍👦</span>
+            <span class="bubble-text">Privat</span>
+        </div>
+    </div>
+
+    <!-- Private Life Modal -->
+    <div class="private-modal hidden" id="private-modal">
+        <div class="private-modal-content">
+            <div class="private-icon">📱</div>
+            <h2>Nachricht von Familie</h2>
+            <p>Deine Familie braucht deine Aufmerksamkeit...</p>
+            <p class="private-detail">"Kannst du bitte kurz anrufen?"</p>
+            <div class="private-buttons">
+                <button class="private-btn private-dismiss" id="private-dismiss">Nicht jetzt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounting Bubble -->
+    <div class="accounting-bubble" id="accounting-bubble">
+        <div class="bubble-content">
+            <span class="bubble-icon">💰</span>
+            <span class="bubble-text">Accounting</span>
+        </div>
+    </div>
+
+    <!-- Accounting Modal -->
+    <div class="accounting-modal hidden" id="accounting-modal">
+        <div class="accounting-modal-content">
+            <div class="accounting-header">
+                <h2>⏰ Zeit-Accounting</h2>
+                <button class="accounting-close" id="accounting-close">✕</button>
+            </div>
+            <p class="accounting-description">Buche deine Arbeitszeit auf die Tasks (in 15-Minuten-Schritten)</p>
+            <div class="accounting-tasks" id="accounting-tasks">
+                <!-- Tasks will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
