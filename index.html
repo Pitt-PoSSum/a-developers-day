@@ -237,6 +237,52 @@
         </div>
     </div>
 
+    <!-- Pull Request Notification -->
+    <div class="pr-notification hidden" id="pr-notification">
+        <div class="pr-notification-content">
+            <div class="pr-notification-header">
+                <span class="pr-icon">🔀</span>
+                <span class="pr-title">Pull Request Review</span>
+            </div>
+            <p class="pr-message">Sarah: "Kannst du bitte meinen PR reviewen?"</p>
+            <a href="#" class="pr-link" id="pr-link">PR #127 ansehen →</a>
+        </div>
+    </div>
+
+    <!-- Pull Request Review Modal -->
+    <div class="pr-review-modal hidden" id="pr-review-modal">
+        <div class="pr-review-content">
+            <div class="pr-review-header">
+                <h2>🔀 Pull Request #127 Review</h2>
+                <button class="pr-review-close" id="pr-review-close">✕</button>
+            </div>
+            <p class="pr-review-description">Bitte überprüfe alle Aspekte und schiebe die Regler nach rechts um zu genehmigen:</p>
+            <div class="pr-review-sliders">
+                <div class="pr-slider-row">
+                    <label for="slider_quality">Code Quality</label>
+                    <input id="slider_quality" type="range" class="pr-slider" min="0" max="100" value="0" data-slider="1">
+                </div>
+                <div class="pr-slider-row">
+                    <label for="slider_tests">Tests</label>
+                    <input id="slider_tests" type="range" class="pr-slider" min="0" max="100" value="0" data-slider="2">
+                </div>
+                <div class="pr-slider-row">
+                    <label for="slider_documentation">Documentation</label>
+                    <input id="slider_documentation" type="range" class="pr-slider" min="0" max="100" value="0" data-slider="3">
+                </div>
+                <div class="pr-slider-row">
+                    <label for="slider_security">Security</label>
+                    <input id="slider_security" type="range" class="pr-slider" min="0" max="100" value="0" data-slider="4">
+                </div>
+                <div class="pr-slider-row">
+                    <label for="slider_performance">Performance</label>
+                    <input id="slider_performance" type="range" class="pr-slider" min="0" max="100" value="0" data-slider="5">
+                </div>
+            </div>
+            <button class="pr-approve-btn" id="pr-approve-btn" disabled>✓ Pull Request genehmigen</button>
+        </div>
+    </div>
+
     <!-- Start Modal -->
     <div class="start-modal" id="start-modal">
         <div class="start-modal-content">

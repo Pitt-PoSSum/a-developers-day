@@ -1309,3 +1309,233 @@ main {
 .start-btn:active {
     transform: translateY(-1px) scale(1.02);
 }
+
+/* Pull Request Notification */
+.pr-notification {
+    position: fixed;
+    top: 50%;
+    right: -400px;
+    transform: translateY(-50%);
+    width: 350px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 9000;
+    animation: slideInFromRight 1s ease-out forwards;
+}
+
+@keyframes slideInFromRight {
+    from {
+        right: -400px;
+    }
+    to {
+        right: 20px;
+    }
+}
+
+.pr-notification.hidden {
+    display: none;
+}
+
+.pr-notification-content {
+    color: white;
+}
+
+.pr-notification-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.pr-icon {
+    font-size: 28px;
+}
+
+.pr-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.pr-message {
+    margin: 10px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.pr-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.pr-link:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(5px);
+}
+
+/* Pull Request Review Modal */
+.pr-review-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.pr-review-modal.hidden {
+    display: none;
+}
+
+.pr-review-content {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pr-review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.pr-review-header h2 {
+    margin: 0;
+    color: #667eea;
+    font-size: 24px;
+}
+
+.pr-review-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s ease;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pr-review-close:hover {
+    color: #333;
+}
+
+.pr-review-description {
+    margin-bottom: 25px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.pr-review-sliders {
+    margin-bottom: 25px;
+}
+
+.pr-slider-row {
+    margin-bottom: 20px;
+}
+
+.pr-slider-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+.pr-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e0e0e0;
+    outline: none;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.pr-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #667eea;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.pr-slider::-webkit-slider-thumb:hover {
+    background: #764ba2;
+    transform: scale(1.2);
+}
+
+.pr-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: #667eea;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.pr-slider::-moz-range-thumb:hover {
+    background: #764ba2;
+    transform: scale(1.2);
+}
+
+.pr-slider[value="100"] {
+    background: linear-gradient(to right, #667eea 0%, #667eea 100%);
+}
+
+.pr-approve-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.pr-approve-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.pr-approve-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}

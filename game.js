@@ -87,6 +87,9 @@ function startGame() {
     setTimeout(() => {
         sendRandomTaskMessage();
     }, 100);
+
+    // Start PR system
+    setupPullRequestSystem();
 }
 
 // Start background music
@@ -1315,6 +1318,67 @@ document.getElementById('start-btn').addEventListener('click', () => {
 
 // Initialize interruption system
 setupInterruptionSystem();
+
+// Pull Request System
+let prShown = false;
+
+function setupPullRequestSystem() {
+    // Show PR notification 120 seconds after game starts
+    setTimeout(() => {
+        if (gameRunning && !prShown) {
+            showPullRequestNotification();
+        }
+    }, 120000);
+}
+
+function showPullRequestNotification() {
+    prShown = true;
+    const prNotification = document.getElementById('pr-notification');
+    prNotification.classList.remove('hidden');
+}
+
+// Setup PR link click
+document.getElementById('pr-link').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Hide notification
+    document.getElementById('pr-notification').classList.add('hidden');
+
+    // Show review modal
+    document.getElementById('pr-review-modal').classList.remove('hidden');
+});
+
+// Setup PR close button
+document.getElementById('pr-review-close').addEventListener('click', () => {
+    document.getElementById('pr-review-modal').classList.add('hidden');
+});
+
+// Setup sliders
+const prSliders = document.querySelectorAll('.pr-slider');
+const prApproveBtn = document.getElementById('pr-approve-btn');
+
+prSliders.forEach(slider => {
+    slider.addEventListener('input', () => {
+        checkAllSlidersComplete();
+    });
+});
+
+function checkAllSlidersComplete() {
+    const allComplete = Array.from(prSliders).every(slider => parseInt(slider.value) === 100);
+    prApproveBtn.disabled = !allComplete;
+}
+
+// Setup approve button
+prApproveBtn.addEventListener('click', () => {
+    // Close modal
+    document.getElementById('pr-review-modal').classList.add('hidden');
+
+    // Reset sliders for next time
+    prSliders.forEach(slider => {
+        slider.value = 0;
+    });
+    prApproveBtn.disabled = true;
+});
 
 // Initialize the game (but don't start yet)
 initGame();
