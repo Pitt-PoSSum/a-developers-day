@@ -82,10 +82,10 @@ function startGame() {
     setTimeout(() => startPrivateBubbleGrowth(), PRIVATE_BUBBLE_DELAY);
     setTimeout(() => startAccountingBubbleGrowth(), ACCOUNTING_BUBBLE_DELAY);
 
-    // Send first two messages immediately
-    sendRandomTaskMessage();
+    // Send first two messages immediately (different tasks)
+    const firstTask = sendRandomTaskMessage();
     setTimeout(() => {
-        sendRandomTaskMessage();
+        sendRandomTaskMessage(firstTask);
     }, 100);
 
     // Start PR system
@@ -180,10 +180,10 @@ function isMessageTaskValid(messageDiv) {
     }
 
     // Check minimum time booked
-    if (task.accountedTime < 15) {
+    if (task.accountedTime < 30) {
         return {
             valid: false,
-            reason: `"${task.title}" hat nur ${formatTime(task.accountedTime)} gebucht, mindestens 15min erforderlich`
+            reason: `"${task.title}" hat nur ${formatTime(task.accountedTime)} gebucht, mindestens 30min erforderlich`
         };
     }
 
@@ -565,7 +565,7 @@ function getNextColumn(currentColumn) {
 }
 
 // Send random task message
-function sendRandomTaskMessage() {
+function sendRandomTaskMessage(excludeTask = null) {
     // Check if we're in the last 20 seconds of the game
     const elapsed = Date.now() - gameStartTime;
     const timeRemaining = GAME_DURATION - elapsed;
@@ -575,11 +575,21 @@ function sendRandomTaskMessage() {
     }
 
     // Find tasks that are not in done column on either board
-    const movableTasks = gameState.tasks.filter(task => {
+    let movableTasks = gameState.tasks.filter(task => {
         const board1NotDone = task.board1Column !== 'done';
         const board2NotDone = task.board2Column !== 'done';
         return board1NotDone || board2NotDone;
     });
+
+    // Exclude the previous task if provided
+    if (excludeTask) {
+        movableTasks = movableTasks.filter(task => {
+            if (task.id !== excludeTask.taskId) return true;
+            // Same task - check if it's the same board and column
+            const excludeColumnKey = `board${excludeTask.boardId}Column`;
+            return task[excludeColumnKey] !== excludeTask.currentColumn;
+        });
+    }
 
     if (movableTasks.length === 0) return;
 
@@ -622,6 +632,13 @@ function sendRandomTaskMessage() {
     };
 
     addMessage(randomMessage, taskData);
+
+    // Return task info for exclusion in next call
+    return {
+        taskId: randomTask.id,
+        boardId: boardId,
+        currentColumn: currentColumn
+    };
 }
 
 // Add message to messenger
@@ -687,9 +704,9 @@ function markMessageAsDone(messageDiv, taskData) {
         return;
     }
 
-    // Check if at least 15 minutes have been accounted for this task
-    if (task.accountedTime < 15) {
-        alert(`⏰ Zeit nicht gebucht!\n\nDu musst mindestens 15 Minuten für "${task.title}" im Accounting buchen.\n\nAktuell gebucht: ${formatTime(task.accountedTime)}`);
+    // Check if at least 30 minutes have been accounted for this task
+    if (task.accountedTime < 30) {
+        alert(`⏰ Zeit nicht gebucht!\n\nDu musst mindestens 30 Minuten für "${task.title}" im Accounting buchen.\n\nAktuell gebucht: ${formatTime(task.accountedTime)}`);
         return;
     }
 
@@ -1020,7 +1037,7 @@ function renderAccountingModal() {
         const minusBtn = document.createElement('button');
         minusBtn.className = 'accounting-btn minus';
         minusBtn.textContent = '−';
-        minusBtn.onclick = () => adjustTaskTime(task.id, -15);
+        minusBtn.onclick = () => adjustTaskTime(task.id, -30);
 
         const timeDisplay = document.createElement('span');
         timeDisplay.className = 'accounting-time';
@@ -1030,7 +1047,7 @@ function renderAccountingModal() {
         const plusBtn = document.createElement('button');
         plusBtn.className = 'accounting-btn plus';
         plusBtn.textContent = '+';
-        plusBtn.onclick = () => adjustTaskTime(task.id, 15);
+        plusBtn.onclick = () => adjustTaskTime(task.id, 30);
 
         taskControls.appendChild(minusBtn);
         taskControls.appendChild(timeDisplay);
